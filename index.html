@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry Sanity</title>
+    <!-- Tailwind CSS for clean, rapid utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-teal-500 selection:text-white">
+
+    <!-- Top Section: Header & Live Calendar Footprint -->
+    <header class="p-4 border-b border-slate-800 bg-slate-950 sticky top-0 z-10">
+        <div class="flex justify-between items-center max-w-md mx-auto">
+            <div>
+                <h1 id="current-date" class="text-xl font-bold text-teal-400">Loading Today...</h1>
+                <p class="text-xs text-slate-400">Focus on the immediate grid.</p>
+            </div>
+            <!-- Settings button to open configuration drawer -->
+            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-white p-2">
+                ⚙️
+            </button>
+        </div>
+        
+        <!-- Live Agenda Block (Calendar integration placeholder) -->
+        <div class="max-w-md mx-auto mt-3 p-2 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+            <span class="text-slate-400 font-semibold uppercase tracking-wider block mb-1">📅 Today's Agenda</span>
+            <div id="calendar-events" class="space-y-1 text-slate-300">
+                <p class="italic text-slate-500">No synchronized calendar events found.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content: The A/B Focus Grid -->
+    <main class="flex-1 p-4 max-w-md w-full mx-auto space-y-6 pb-24">
+        
+        <!-- ABSOLUTES ROW (Pre-planned requirements) -->
+        <section class="bg-slate-950 p-4 rounded-xl border border-rose-950/40 shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-rose-500 text-lg">📌</span>
+                    <h2 class="text-lg font-bold tracking-tight text-slate-200">Absolutes</h2>
+                </div>
+                <button onclick="promptAddTask('absolutes')" class="text-xs bg-rose-950 text-rose-300 px-2 py-1 rounded hover:bg-rose-900 transition">+</button>
+            </div>
+            <ul id="absolutes-list" class="space-y-2.5">
+                <!-- Injected via JavaScript -->
+            </ul>
+        </section>
+
+        <!-- BANDWIDTH ROW (The true daily catchment system) -->
+        <section class="bg-slate-950 p-4 rounded-xl border border-teal-950/40 shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-teal-500 text-lg">⚡</span>
+                    <h2 class="text-lg font-bold tracking-tight text-slate-200">Bandwidth</h2>
+                </div>
+                <button onclick="promptAddTask('bandwidth')" class="text-xs bg-teal-950 text-teal-300 px-2 py-1 rounded hover:bg-teal-900 transition">+</button>
+            </div>
+            <ul id="bandwidth-list" class="space-y-2.5 mb-4">
+                <!-- Injected via JavaScript -->
+            </ul>
+            <!-- Primary Action Button for capturing live interruptions -->
+            <button onclick="promptAddTask('bandwidth')" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-teal-900/20 transition flex items-center justify-center gap-2">
+                <span>➕</span> Log Real-Time Interruption
+            </button>
+        </section>
+
+        <!-- Slide Trigger Panel (Pull from Future) -->
+        <div class="flex justify-end">
+            <button onclick="toggleDrawer('future-drawer')" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-700 transition flex items-center gap-1">
+                Pull Future Task ➔
+            </button>
+        </div>
+    </main>
+
+    <!-- Bottom Section: The Dynamic Horizon View & Recurring Settings -->
+    <footer class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-950 p-3 z-10">
+        <div class="max-w-md mx-auto flex justify-around text-xs font-semibold text-slate-400">
+            <button onclick="openHorizon('monthly')" class="hover:text-teal-400 py-1 px-3 rounded">Monthly</button>
+            <button onclick="openHorizon('quarterly')" class="hover:text-teal-400 py-1 px-3 rounded">Quarterly</button>
+            <button onclick="openHorizon('annual')" class="hover:text-teal-400 py-1 px-3 rounded">Annual</button>
+        </div>
+    </footer>
+
+    <!-- DRAWERS / MODALS CONTAINER (Hidden by default) -->
+    <!-- Future Tasks Drawer -->
+    <div id="future-drawer" class="fixed inset-0 bg-black/60 hidden z-20 backdrop-blur-sm transition-opacity">
+        <div class="absolute right-0 top-0 bottom-0 w-80 bg-slate-950 p-4 border-l border-slate-800 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-200">Upcoming This Week</h3>
+                <button onclick="toggleDrawer('future-drawer')" class="text-slate-500 hover:text-white">✕</button>
+            </div>
+            <div id="future-tasks-container" class="space-y-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Core App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
