@@ -104,22 +104,31 @@ async function fetchCalendarFeed(url) {
     }
 }
 
-// Internal processor to filter out today's agenda timestamps
+// Internal processor to filter out today's agenda timestamps matching device local layout
 function parseAndRenderEvents(rawDataStr) {
     const eventContainer = document.getElementById('calendar-events');
     const jcalData = ICAL.parse(rawDataStr);
     const comp = new ICAL.Component(jcalData);
     const vevents = comp.getAllSubcomponents('vevent');
     
-    const todayStr = getTodayKey(); 
+    // Get local today parameters
+    const today = new Date();
+    const targetYear = today.getFullYear();
+    const targetMonth = today.getMonth();
+    const targetDate = today.getDate();
+    
     let todayEvents = [];
 
     vevents.forEach(vevent => {
         const event = new ICAL.Event(vevent);
         const dtstart = event.startDate.toJSDate();
-        const eventDateStr = `${dtstart.getFullYear()}-${String(dtstart.getMonth() + 1).padStart(2, '0')}-${String(dtstart.getDate()).padStart(2, '0')}`;
         
-        if (eventDateStr === todayStr) {
+        // Match exact year, month, and day based on local device presentation
+        if (
+            dtstart.getFullYear() === targetYear &&
+            dtstart.getMonth() === targetMonth &&
+            dtstart.getDate() === targetDate
+        ) {
             let timeStr = "All Day";
             if (!event.startDate.isDate) { 
                 timeStr = dtstart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -128,6 +137,7 @@ function parseAndRenderEvents(rawDataStr) {
         }
     });
 
+    // Chronological Sort
     todayEvents.sort((a, b) => a.rawTime - b.rawTime);
 
     if (todayEvents.length === 0) {
