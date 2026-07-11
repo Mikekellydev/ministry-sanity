@@ -4,27 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry Sanity Dashboard</title>
+    <!-- Tailwind CSS CDN (Development Link) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ICAL.js Parser CDN Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-teal-500 selection:text-slate-950">
 
+    <!-- Top PWA App Header -->
     <div class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900/60 max-w-md mx-auto px-4 py-3 flex items-center justify-center">
         <span class="text-xs font-black tracking-[0.2em] text-slate-400 uppercase">Ministry Sanity</span>
     </div>
 
+    <!-- Global Framework Container -->
     <div class="max-w-md mx-auto p-4 space-y-6 pb-24 relative min-h-[calc(100vh-45px)]">
         
-        <header class="flex items-center justify-between pt-2">
-            <div class="flex-1">
-                <div class="flex items-center gap-4 mb-0.5">
-                    <button onclick="navigateDays(-1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl transition active:scale-90 select-none">◀</button>
-                    <h1 id="current-date" class="text-2xl font-black text-teal-400 tracking-tight">Saturday, Jul 11</h1>
-                    <button onclick="navigateDays(1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl transition active:scale-90 select-none">▶</button>
+        <!-- Header Section (Dynamic Date Nav & Settings Trigger) -->
+        <header class="flex items-center justify-between pt-2 select-none">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <button onclick="navigateDays(-1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl p-2 -ml-2 transition active:scale-75 shrink-0">◀</button>
+                    <h1 id="current-date" class="text-xl sm:text-2xl font-black text-teal-400 tracking-tight truncate">Saturday, Jul 11</h1>
+                    <button onclick="navigateDays(1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl p-2 transition active:scale-75 shrink-0">▶</button>
                 </div>
-                <p class="text-xs text-slate-500 font-medium">Focus on the immediate grid.</p>
+                <p class="text-xs text-slate-500 font-medium pl-0.5">Focus on the immediate grid.</p>
             </div>
-            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-teal-400 p-2 transition duration-200 shrink-0">
+            
+            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-teal-400 p-2 ml-1 transition duration-200 shrink-0 active:scale-90">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -32,6 +38,7 @@
             </button>
         </header>
 
+        <!-- Live Calendar Agenda Panel -->
         <section class="bg-slate-900/60 border border-slate-900 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
             <div class="flex items-center gap-2 text-slate-400 font-bold text-xs tracking-wider uppercase mb-3">
                 <span>📅</span>
@@ -42,6 +49,7 @@
             </div>
         </section>
 
+        <!-- Absolutes Container -->
         <section class="space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
@@ -51,9 +59,11 @@
                 <button onclick="promptAddTask('absolutes')" class="bg-rose-950/40 text-rose-400 hover:bg-rose-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-rose-900/40">+</button>
             </div>
             <ul id="absolutes-list" class="space-y-2">
-                </ul>
+                <!-- Managed Live by App.js -->
+            </ul>
         </section>
 
+        <!-- Bandwidth Container -->
         <section class="space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
@@ -62,13 +72,32 @@
                 </div>
                 <button onclick="promptAddTask('bandwidth')" class="bg-teal-950/40 text-teal-400 hover:bg-teal-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-teal-900/40">+</button>
             </div>
+            
             <ul id="bandwidth-list" class="space-y-2">
-                </ul>
-            <button onclick="promptAddTask('bandwidth')" class="w-full bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-3.5 rounded-xl shadow-lg shadow-teal-600/10 transition active:scale-[0.99] mt-2 flex items-center justify-center gap-2 text-sm">
-                <span>➕</span> Log Real-Time Interruption
-            </button>
+                <!-- Managed Live by App.js -->
+            </ul>
+
+            <!-- Micro-Friction Interruption Trigger Panel -->
+            <div class="bg-slate-900/40 border border-slate-900/80 p-2.5 rounded-xl space-y-2 shadow-inner">
+                <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Instant Tactical Logs</p>
+                <div class="grid grid-cols-4 gap-1.5 text-xs font-bold text-slate-300">
+                    <button onclick="logFastInterruption('📞 Call')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                        <span>📞</span> <span class="text-[10px] tracking-tight">Call</span>
+                    </button>
+                    <button onclick="logFastInterruption('💬 Chat')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                        <span>💬</span> <span class="text-[10px] tracking-tight">Chat</span>
+                    </button>
+                    <button onclick="logFastInterruption('🚨 Fire')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                        <span>🚨</span> <span class="text-[10px] tracking-tight">Fire</span>
+                    </button>
+                    <button onclick="promptAddTask('bandwidth')" class="bg-teal-950/40 hover:bg-teal-900/40 border border-teal-900/40 text-teal-400 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                        <span>🌀</span> <span class="text-[10px] tracking-tight">Breach</span>
+                    </button>
+                </div>
+            </div>
         </section>
 
+        <!-- Upcoming Day Template Lookahead Pipeline -->
         <section class="pt-2">
             <div onclick="toggleDrawer('future-drawer')" class="flex items-center justify-between bg-slate-900/30 border border-slate-900 p-3 rounded-xl cursor-pointer hover:bg-slate-900/50 transition">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">🔮 Week Lookahead Pipeline</span>
@@ -76,14 +105,68 @@
             </div>
             <div id="future-drawer" class="hidden mt-3 space-y-3 transition duration-200">
                 <div id="future-tasks-container" class="space-y-3">
-                    </div>
+                    <!-- Managed Live by Lookahead Engine Loop -->
+                </div>
             </div>
         </section>
 
+        <!-- Dynamic Action Base: Tactical Deferral Modal -->
+        <div id="defer-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-amber-400 tracking-tight flex items-center gap-2"><span>⏳</span> Defer Operation</h3>
+                    <button onclick="closeDeferModal()" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                
+                <div class="space-y-3">
+                    <input id="defer-task-id" type="hidden">
+                    <input id="defer-task-type" type="hidden">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Select Strategy Target Date</label>
+                        <input id="defer-target-date" type="date" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 text-slate-300">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="executeDeferral()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Reschedule Target</button>
+                    <button onclick="closeDeferModal()" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Action Base: Tactical Delegation Modal -->
+        <div id="delegate-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-rose-400 tracking-tight flex items-center gap-2"><span>👤</span> Hand Off Operations</h3>
+                    <button onclick="closeDelegateModal()" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                
+                <div class="space-y-3">
+                    <input id="delegate-task-id" type="hidden">
+                    <input id="delegate-task-type" type="hidden">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Assigned Agent / Name</label>
+                        <input id="delegate-agent-name" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="e.g., Sarah Smith">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Accountability Follow-Up Date</label>
+                        <input id="delegate-follow-date" type="date" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 text-slate-300">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="executeDelegation()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Confirm Hand-Off</button>
+                    <button onclick="closeDelegateModal()" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Modal Base: Settings Drawer -->
         <div id="settings-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h3 class="font-black text-lg text-teal-400 tracking-tight " >System Settings</h3>
+                    <h3 class="font-black text-lg text-teal-400 tracking-tight">System Settings</h3>
                     <button onclick="toggleDrawer('settings-drawer')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
                 
@@ -134,6 +217,7 @@
             </div>
         </div>
 
+        <!-- Dynamic Modal Base: Vision Horizon Drawers -->
         <div id="horizon-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[75vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -147,10 +231,12 @@
                 </div>
 
                 <ul id="horizon-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
-                    </ul>
+                    <!-- Managed Live by Horizon Script Framework -->
+                </ul>
             </div>
         </div>
 
+        <!-- Footer Navigation Horizon Tabs -->
         <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/90 border-t border-slate-900 p-2.5 flex items-center justify-around text-[11px] font-bold uppercase tracking-wider text-slate-400 shadow-xl backdrop-blur-md z-40">
             <button onclick="openHorizonDrawer('monthly')" class="flex flex-col items-center gap-1 hover:text-teal-400 transition py-1 px-3">
                 <span>Monthly</span>
@@ -165,6 +251,7 @@
 
     </div>
 
+    <!-- Core Operations Link Mapping -->
     <script src="app.js"></script>
 </body>
 </html>
