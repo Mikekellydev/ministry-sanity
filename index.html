@@ -3,175 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ministry Sanity</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Ministry Sanity Dashboard</title>
+    <!-- Tailwind CSS CDN (Development Link) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <!-- ICAL.js Parser CDN Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-teal-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-teal-500 selection:text-slate-950">
 
-    <!-- Top Section: Header & Live Calendar Footprint -->
-    <header class="p-4 border-b border-slate-800 bg-slate-950 sticky top-0 z-10">
-        <div class="flex justify-between items-center max-w-md mx-auto">
+    <!-- Global Framework Container -->
+    <div class="max-w-md mx-auto p-4 space-y-6 pb-24 relative min-h-screen">
+        
+        <!-- Header Section -->
+        <header class="flex items-center justify-between pt-4">
             <div>
-                <h1 id="current-date" class="text-xl font-bold text-teal-400">Loading Today...</h1>
-                <p class="text-xs text-slate-400">Focus on the immediate grid.</p>
+                <h1 id="current-date" class="text-2xl font-black text-teal-400 tracking-tight">Saturday, Jul 11</h1>
+                <p class="text-xs text-slate-500 font-medium">Focus on the immediate grid.</p>
             </div>
-            <!-- Settings button to open configuration drawer -->
-            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-white p-2 text-lg">
-                ⚙️
+            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-teal-400 p-2 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
             </button>
-        </div>
-        
-        <!-- Live Agenda Block -->
-        <div class="max-w-md mx-auto mt-3 p-2 bg-slate-900 rounded-lg border border-slate-800 text-xs">
-            <span class="text-slate-400 font-semibold uppercase tracking-wider block mb-1">📅 Today's Agenda</span>
-            <div id="calendar-events" class="space-y-1 text-slate-300">
-                <p class="italic text-slate-500">No synchronized calendar events found.</p>
-            </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- Main Content: The A/B Focus Grid -->
-    <main class="flex-1 p-4 max-w-md w-full mx-auto space-y-6 pb-28">
-        
-        <!-- ABSOLUTES ROW -->
-        <section class="bg-slate-950 p-4 rounded-xl border border-rose-950/40 shadow-xl">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-rose-500 text-lg">📌</span>
-                    <h2 class="text-lg font-bold tracking-tight text-slate-200">Absolutes</h2>
-                </div>
-                <button onclick="promptAddTask('absolutes')" class="text-xs bg-rose-950 text-rose-300 px-2 py-1 rounded hover:bg-rose-900 transition">+</button>
+        <!-- Live Calendar Agenda Panel -->
+        <section class="bg-slate-900/60 border border-slate-900 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
+            <div class="flex items-center gap-2 text-slate-400 font-bold text-xs tracking-wider uppercase mb-3">
+                <span>📅</span>
+                <h2>Today's Agenda</h2>
             </div>
-            <ul id="absolutes-list" class="space-y-2.5">
-                <!-- Injected via JavaScript -->
+            <div id="calendar-events" class="text-sm space-y-2 text-slate-300 min-h-[40px]">
+                <!-- Managed Live by App.js Parser -->
+                <p class="italic text-slate-600 text-xs">Awaiting schedule feed initialization...</p>
+            </div>
+        </section>
+
+        <!-- Absolutes Container (Day Tasks Loop) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
+                    <span class="text-rose-500">📌</span>
+                    <h2>Absolutes</h2>
+                </div>
+                <button onclick="promptAddTask('absolutes')" class="bg-rose-950/40 text-rose-400 hover:bg-rose-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-rose-900/40">+</button>
+            </div>
+            <ul id="absolutes-list" class="space-y-2">
+                <!-- Managed Live by App.js -->
             </ul>
         </section>
 
-        <!-- BANDWIDTH ROW -->
-        <section class="bg-slate-950 p-4 rounded-xl border border-teal-950/40 shadow-xl">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-teal-500 text-lg">⚡</span>
-                    <h2 class="text-lg font-bold tracking-tight text-slate-200">Bandwidth</h2>
+        <!-- Bandwidth Container (Interruptions Loop) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
+                    <span class="text-amber-500">⚡</span>
+                    <h2>Bandwidth</h2>
                 </div>
-                <button onclick="promptAddTask('bandwidth')" class="text-xs bg-teal-950 text-teal-300 px-2 py-1 rounded hover:bg-teal-900 transition">+</button>
+                <button onclick="promptAddTask('bandwidth')" class="bg-teal-950/40 text-teal-400 hover:bg-teal-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-teal-900/40">+</button>
             </div>
-            <ul id="bandwidth-list" class="space-y-2.5 mb-4">
-                <!-- Injected via JavaScript -->
+            <ul id="bandwidth-list" class="space-y-2">
+                <!-- Managed Live by App.js -->
             </ul>
-            <!-- Primary Action Button for capturing live interruptions -->
-            <button onclick="promptAddTask('bandwidth')" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-teal-900/20 transition flex items-center justify-center gap-2">
+            <button onclick="promptAddTask('bandwidth')" class="w-full bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-3.5 rounded-xl shadow-lg shadow-teal-600/10 transition active:scale-[0.99] mt-2 flex items-center justify-center gap-2 text-sm">
                 <span>➕</span> Log Real-Time Interruption
             </button>
         </section>
 
-        <!-- Slide Trigger Panel (Pull from Future) -->
-        <div class="flex justify-end">
-            <button onclick="toggleDrawer('future-drawer')" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-700 transition flex items-center gap-1">
-                Pull Future Task ➔
-            </button>
-        </div>
-    </main>
-
-    <!-- Bottom Section: The Dynamic Horizon View Tabbed Menu -->
-    <footer class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-950 p-3 z-10">
-        <div class="max-w-md mx-auto flex justify-around text-xs font-semibold text-slate-400">
-            <button onclick="openHorizonDrawer('monthly')" class="hover:text-teal-400 py-1 px-3 rounded transition">Monthly</button>
-            <button onclick="openHorizonDrawer('quarterly')" class="hover:text-teal-400 py-1 px-3 rounded transition">Quarterly</button>
-            <button onclick="openHorizonDrawer('annual')" class="hover:text-teal-400 py-1 px-3 rounded transition">Annual</button>
-        </div>
-    </footer>
-
-    <!-- DRAWERS & CONFIGURATION OVERLAYS -->
-
-    <!-- Settings Drawer -->
-    <div id="settings-drawer" class="fixed inset-0 bg-black/70 hidden z-20 backdrop-blur-sm">
-        <div class="absolute left-0 right-0 bottom-0 top-12 md:left-auto md:w-96 bg-slate-950 p-5 border-t md:border-t-0 md:border-l border-slate-800 overflow-y-auto rounded-t-2xl md:rounded-t-none">
-            <div class="flex justify-between items-center mb-5">
-                <div>
-                    <h3 class="font-bold text-lg text-slate-200">System Configuration</h3>
-                    <p class="text-xs text-slate-400">Set your weekly baseline recurring tasks.</p>
+        <!-- Upcoming Day Template Lookahead Pipeline -->
+        <section class="pt-2">
+            <div onclick="toggleDrawer('future-drawer')" class="flex items-center justify-between bg-slate-900/30 border border-slate-900 p-3 rounded-xl cursor-pointer hover:bg-slate-900/50 transition">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">🔮 Week Lookahead Pipeline</span>
+                <span class="text-xs text-slate-600">Toggle View</span>
+            </div>
+            <div id="future-drawer" class="hidden mt-3 space-y-3 transition duration-200">
+                <div id="future-tasks-container" class="space-y-3">
+                    <!-- Managed Live by Lookahead Engine Loop -->
                 </div>
-                <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-white p-2 text-xl">✕</button>
             </div>
+        </section>
 
-            <!-- Calendar URL Placeholder -->
-            <div class="mb-6 space-y-2">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Private iCal Feed URL (.ics)</label>
-                <input type="url" id="settings-ical-input" placeholder="https://calendar.google.com/..." 
-                       class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-teal-500">
-            </div>
-
-            <!-- Weekly Recurrence Templates -->
-            <div class="space-y-4">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Weekly Absolutes Templates (Comma Separated)</label>
+        <!-- Dynamic Modal Base: Settings Drawer -->
+        <div id="settings-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-teal-400 tracking-tight">System Settings</h3>
+                    <button onclick="toggleDrawer('settings-drawer')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
                 
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                    <span class="text-xs font-bold text-rose-400 uppercase block">Mondays</span>
-                    <input type="text" id="rec-monday" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-rose-500">
+                <div class="space-y-4">
+                    <!-- iCal Feed Input Field -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Public iCal Feed URL</label>
+                        <input id="settings-ical-input" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-lg text-xs focus:outline-none focus:border-teal-500 font-mono" placeholder="https://calendar.google.com/...">
+                    </div>
+
+                    <div class="border-t border-slate-800/60 pt-2">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Master Weekly Recurrence Templates (Comma Separated)</p>
+                    </div>
+
+                    <!-- Mon-Fri Loops -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Monday Absolutes</label>
+                        <textarea id="rec-monday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Staff Meeting, Prep, Review..."></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Tuesday Absolutes</label>
+                        <textarea id="rec-tuesday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Wednesday Absolutes</label>
+                        <textarea id="rec-wednesday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Thursday Absolutes</label>
+                        <textarea id="rec-thursday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Friday Absolutes</label>
+                        <textarea id="rec-friday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500"></textarea>
+                    </div>
+
+                    <!-- EXPANDED WEEKEND FIELDS FOR MINISTRY ALIGNMENT -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-teal-500/80 uppercase tracking-wide flex items-center gap-1">✨ Saturday Absolutes</label>
+                        <textarea id="rec-saturday" class="w-full bg-slate-950 border border-teal-950/40 border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Service Prep, Event Check-in..."></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-teal-500/80 uppercase tracking-wide flex items-center gap-1">✨ Sunday Absolutes</label>
+                        <textarea id="rec-sunday" class="w-full bg-slate-950 border border-teal-950/40 border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Morning Service, Evening Fellowship..."></textarea>
+                    </div>
                 </div>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                    <span class="text-xs font-bold text-rose-400 uppercase block">Tuesdays</span>
-                    <input type="text" id="rec-tuesday" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-rose-500">
-                </div>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                    <span class="text-xs font-bold text-rose-400 uppercase block">Wednesdays</span>
-                    <input type="text" id="rec-wednesday" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-rose-500">
-                </div>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                    <span class="text-xs font-bold text-rose-400 uppercase block">Thursdays</span>
-                    <input type="text" id="rec-thursday" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-rose-500">
-                </div>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                    <span class="text-xs font-bold text-rose-400 uppercase block">Fridays</span>
-                    <input type="text" id="rec-friday" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-rose-500">
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button onclick="saveConfiguration()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Save Configuration</button>
+                    <button onclick="toggleDrawer('settings-drawer')" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
                 </div>
             </div>
+        </div>
 
-            <button onclick="saveConfiguration()" class="w-full mt-6 bg-teal-600 hover:bg-teal-500 text-white font-medium py-2.5 rounded-lg text-sm transition">
-                Save & Apply Structure
+        <!-- Dynamic Modal Base: Vision Horizon Drawers -->
+        <div id="horizon-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[75vh] overflow-y-auto shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 id="horizon-title" class="font-black text-lg text-teal-400 tracking-tight capitalize">Vision Horizon</h3>
+                    <button onclick="document.getElementById('horizon-drawer').classList.add('hidden')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                
+                <div class="flex gap-2">
+                    <input id="new-horizon-item" type="text" class="flex-1 bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="Add visionary track...">
+                    <button onclick="addHorizonItem()" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold px-4 rounded-xl text-sm transition">+</button>
+                </div>
+
+                <ul id="horizon-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+                    <!-- Managed Live by Horizon Script Framework -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer Navigation Horizon Tabs -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/90 border-t border-slate-900 p-2.5 flex items-center justify-around text-[11px] font-bold uppercase tracking-wider text-slate-400 shadow-xl backdrop-blur-md z-40">
+            <button onclick="openHorizonDrawer('monthly')" class="flex flex-col items-center gap-1 hover:text-teal-400 transition py-1 px-3">
+                <span>Monthly</span>
             </button>
-        </div>
+            <button onclick="openHorizonDrawer('quarterly')" class="flex flex-col items-center gap-1 hover:text-teal-400 transition py-1 px-3">
+                <span>Quarterly</span>
+            </button>
+            <button onclick="openHorizonDrawer('annual')" class="flex flex-col items-center gap-1 hover:text-teal-400 transition py-1 px-3">
+                <span>Annual</span>
+            </button>
+        </nav>
+
     </div>
 
-    <!-- Future Week Drawer (Pull Mechanism) -->
-    <div id="future-drawer" class="fixed inset-0 bg-black/70 hidden z-20 backdrop-blur-sm">
-        <div class="absolute right-0 top-0 bottom-0 w-80 bg-slate-950 p-4 border-l border-slate-800 overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h3 class="font-bold text-slate-200">The Week Ahead</h3>
-                    <p class="text-xs text-slate-400">Tap to pull into today's Bandwidth</p>
-                </div>
-                <button onclick="toggleDrawer('future-drawer')" class="text-slate-400 hover:text-white p-2">✕</button>
-            </div>
-            <div id="future-tasks-container" class="space-y-4">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Horizon View Drawer (Bottom Modal) -->
-    <div id="horizon-drawer" class="fixed inset-0 bg-black/70 hidden z-20 backdrop-blur-sm">
-        <div class="absolute left-0 right-0 bottom-0 bg-slate-950 p-5 border-t border-slate-800 rounded-t-2xl max-w-md mx-auto">
-            <div class="flex justify-between items-center mb-3">
-                <h3 id="horizon-title" class="font-bold text-lg text-teal-400 uppercase tracking-wider">Horizon</h3>
-                <button onclick="toggleDrawer('horizon-drawer')" class="text-slate-400 hover:text-white px-2 py-1">✕</button>
-            </div>
-            <div class="flex gap-2 mb-4">
-                <input type="text" id="new-horizon-item" placeholder="Add vision goal..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-teal-500">
-                <button onclick="addHorizonItem()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold">+</button>
-            </div>
-            <ul id="horizon-list" class="space-y-2 max-h-60 overflow-y-auto">
-                <!-- Injected via JS -->
-            </ul>
-        </div>
-    </div>
-
-    <!-- Application Script Engine -->
+    <!-- Core Operations Link Mapping -->
     <script src="app.js"></script>
 </body>
 </html>
