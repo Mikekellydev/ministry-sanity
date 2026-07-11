@@ -81,13 +81,13 @@
             <div class="bg-slate-900/40 border border-slate-900/80 p-2.5 rounded-xl space-y-2 shadow-inner">
                 <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Instant Tactical Logs</p>
                 <div class="grid grid-cols-4 gap-1.5 text-xs font-bold text-slate-300">
-                    <button onclick="logFastInterruption('📞 Call')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                    <button onclick="openInterruptionModal('call')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
                         <span>📞</span> <span class="text-[10px] tracking-tight">Call</span>
                     </button>
-                    <button onclick="logFastInterruption('💬 Chat')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                    <button onclick="openInterruptionModal('chat')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
                         <span>💬</span> <span class="text-[10px] tracking-tight">Chat</span>
                     </button>
-                    <button onclick="logFastInterruption('🚨 Fire')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
+                    <button onclick="openInterruptionModal('fire')" class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
                         <span>🚨</span> <span class="text-[10px] tracking-tight">Fire</span>
                     </button>
                     <button onclick="promptAddTask('bandwidth')" class="bg-teal-950/40 hover:bg-teal-900/40 border border-teal-900/40 text-teal-400 p-2.5 rounded-lg active:scale-95 transition flex flex-col items-center gap-1">
@@ -110,14 +110,83 @@
             </div>
         </section>
 
-        <!-- Dynamic Action Base: Tactical Deferral Modal -->
+        <!-- ================= DYNAMIC MODALS MATRIX ================= -->
+
+        <!-- 📞 CALL INTERRUPTION MODAL -->
+        <div id="call-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-slate-200 tracking-tight flex items-center gap-2"><span>📞</span> Log Incoming Call</h3>
+                    <button onclick="closeInterruptionModal('call')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Contact / Caller Name</label>
+                        <input id="call-name" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="e.g., Pastor Miller">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Phone Number / Extension</label>
+                        <input id="call-phone" type="tel" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 font-mono" placeholder="e.g., (555) 019-2834 or Ext. 4">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="executeCallLog()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Log Interruption</button>
+                    <button onclick="closeInterruptionModal('call')" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💬 CHAT INTERRUPTION MODAL -->
+        <div id="chat-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-slate-200 tracking-tight flex items-center gap-2"><span>💬</span> Log Chat Interruption</h3>
+                    <button onclick="closeInterruptionModal('chat')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Sender Name</label>
+                        <input id="chat-sender" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="e.g., Deacon Thomas">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="executeChatLog()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Log Interruption</button>
+                    <button onclick="closeInterruptionModal('chat')" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🚨 FIRE CRISIS MODAL -->
+        <div id="fire-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-black text-lg text-rose-500 tracking-tight flex items-center gap-2"><span>🚨</span> Log Critical Fire</h3>
+                    <button onclick="closeInterruptionModal('fire')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
+                </div>
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Crisis Description / Event</label>
+                        <input id="fire-desc" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="e.g., Main stage sound console power failure">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Incident Timestamp</label>
+                        <input id="fire-time" type="time" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 text-slate-300">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="executeFireLog()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Log Active Fire</button>
+                    <button onclick="closeInterruptionModal('fire')" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⏳ DEFERRAL MODAL -->
         <div id="defer-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <h3 class="font-black text-lg text-amber-400 tracking-tight flex items-center gap-2"><span>⏳</span> Defer Operation</h3>
                     <button onclick="closeDeferModal()" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
-                
                 <div class="space-y-3">
                     <input id="defer-task-id" type="hidden">
                     <input id="defer-task-type" type="hidden">
@@ -126,7 +195,6 @@
                         <input id="defer-target-date" type="date" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 text-slate-300">
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 pt-1">
                     <button onclick="executeDeferral()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Reschedule Target</button>
                     <button onclick="closeDeferModal()" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
@@ -134,14 +202,13 @@
             </div>
         </div>
 
-        <!-- Dynamic Action Base: Tactical Delegation Modal -->
+        <!-- 👤 DELEGATION MODAL -->
         <div id="delegate-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <h3 class="font-black text-lg text-rose-400 tracking-tight flex items-center gap-2"><span>👤</span> Hand Off Operations</h3>
                     <button onclick="closeDelegateModal()" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
-                
                 <div class="space-y-3">
                     <input id="delegate-task-id" type="hidden">
                     <input id="delegate-task-type" type="hidden">
@@ -154,7 +221,6 @@
                         <input id="delegate-follow-date" type="date" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-sm focus:outline-none focus:border-teal-500 text-slate-300">
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 pt-1">
                     <button onclick="executeDelegation()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Confirm Hand-Off</button>
                     <button onclick="closeDelegateModal()" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
@@ -162,24 +228,21 @@
             </div>
         </div>
 
-        <!-- Dynamic Modal Base: Settings Drawer -->
+        <!-- SYSTEM SETTINGS DRAWER -->
         <div id="settings-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <h3 class="font-black text-lg text-teal-400 tracking-tight">System Settings</h3>
                     <button onclick="toggleDrawer('settings-drawer')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
-                
                 <div class="space-y-4">
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Public iCal Feed URL</label>
                         <input id="settings-ical-input" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-lg text-xs focus:outline-none focus:border-teal-500 font-mono" placeholder="https://calendar.google.com/...">
                     </div>
-
                     <div class="border-t border-slate-800/60 pt-2">
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Master Weekly Recurrence Templates (Comma Separated)</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Monday Absolutes</label>
                         <textarea id="rec-monday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Staff Meeting, Prep, Review..."></textarea>
@@ -209,7 +272,6 @@
                         <textarea id="rec-sunday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Morning Service, Evening Fellowship..."></textarea>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 pt-2">
                     <button onclick="saveConfiguration()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition">Save Configuration</button>
                     <button onclick="toggleDrawer('settings-drawer')" class="bg-slate-950 text-slate-400 border border-slate-800 p-2.5 rounded-xl text-sm hover:text-slate-200 transition">Cancel</button>
@@ -217,19 +279,17 @@
             </div>
         </div>
 
-        <!-- Dynamic Modal Base: Vision Horizon Drawers -->
+        <!-- VISION HORIZON DRAWER -->
         <div id="horizon-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[75vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <h3 id="horizon-title" class="font-black text-lg text-teal-400 tracking-tight capitalize">Vision Horizon</h3>
                     <button onclick="document.getElementById('horizon-drawer').classList.add('hidden')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
-                
                 <div class="flex gap-2">
                     <input id="new-horizon-item" type="text" class="flex-1 bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-xl text-sm focus:outline-none focus:border-teal-500" placeholder="Add visionary track...">
                     <button onclick="addHorizonItem()" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold px-4 rounded-xl text-sm transition">+</button>
                 </div>
-
                 <ul id="horizon-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
                     <!-- Managed Live by Horizon Script Framework -->
                 </ul>
