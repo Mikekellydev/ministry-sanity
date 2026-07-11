@@ -4,28 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry Sanity Dashboard</title>
-    <!-- Tailwind CSS CDN (Development Link) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- ICAL.js Parser CDN Dependency -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-teal-500 selection:text-slate-950">
 
-    <!-- Top PWA App Header -->
     <div class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900/60 max-w-md mx-auto px-4 py-3 flex items-center justify-center">
         <span class="text-xs font-black tracking-[0.2em] text-slate-400 uppercase">Ministry Sanity</span>
     </div>
 
-    <!-- Global Framework Container -->
     <div class="max-w-md mx-auto p-4 space-y-6 pb-24 relative min-h-[calc(100vh-45px)]">
         
-        <!-- Header Section (Date & Settings Trigger) -->
         <header class="flex items-center justify-between pt-2">
-            <div>
-                <h1 id="current-date" class="text-2xl font-black text-teal-400 tracking-tight">Saturday, Jul 11</h1>
+            <div class="flex-1">
+                <div class="flex items-center gap-4 mb-0.5">
+                    <button onclick="navigateDays(-1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl transition active:scale-90 select-none">◀</button>
+                    <h1 id="current-date" class="text-2xl font-black text-teal-400 tracking-tight">Saturday, Jul 11</h1>
+                    <button onclick="navigateDays(1)" class="text-slate-500 hover:text-teal-400 font-bold text-xl transition active:scale-90 select-none">▶</button>
+                </div>
                 <p class="text-xs text-slate-500 font-medium">Focus on the immediate grid.</p>
             </div>
-            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-teal-400 p-2 transition duration-200">
+            <button onclick="toggleDrawer('settings-drawer')" class="text-slate-400 hover:text-teal-400 p-2 transition duration-200 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -33,19 +32,16 @@
             </button>
         </header>
 
-        <!-- Live Calendar Agenda Panel -->
         <section class="bg-slate-900/60 border border-slate-900 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
             <div class="flex items-center gap-2 text-slate-400 font-bold text-xs tracking-wider uppercase mb-3">
                 <span>📅</span>
                 <h2>Today's Agenda</h2>
             </div>
             <div id="calendar-events" class="text-sm space-y-2 text-slate-300 min-h-[40px]">
-                <!-- Managed Live by App.js Parser -->
                 <p class="italic text-slate-600 text-xs">Awaiting schedule feed initialization...</p>
             </div>
         </section>
 
-        <!-- Absolutes Container (Day Tasks Loop) -->
         <section class="space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
@@ -55,11 +51,9 @@
                 <button onclick="promptAddTask('absolutes')" class="bg-rose-950/40 text-rose-400 hover:bg-rose-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-rose-900/40">+</button>
             </div>
             <ul id="absolutes-list" class="space-y-2">
-                <!-- Managed Live by App.js -->
-            </ul>
+                </ul>
         </section>
 
-        <!-- Bandwidth Container (Interruptions Loop) -->
         <section class="space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 font-bold text-sm tracking-wide text-slate-300">
@@ -69,14 +63,12 @@
                 <button onclick="promptAddTask('bandwidth')" class="bg-teal-950/40 text-teal-400 hover:bg-teal-900/60 w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs transition border border-teal-900/40">+</button>
             </div>
             <ul id="bandwidth-list" class="space-y-2">
-                <!-- Managed Live by App.js -->
-            </ul>
+                </ul>
             <button onclick="promptAddTask('bandwidth')" class="w-full bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold p-3.5 rounded-xl shadow-lg shadow-teal-600/10 transition active:scale-[0.99] mt-2 flex items-center justify-center gap-2 text-sm">
                 <span>➕</span> Log Real-Time Interruption
             </button>
         </section>
 
-        <!-- Upcoming Day Template Lookahead Pipeline -->
         <section class="pt-2">
             <div onclick="toggleDrawer('future-drawer')" class="flex items-center justify-between bg-slate-900/30 border border-slate-900 p-3 rounded-xl cursor-pointer hover:bg-slate-900/50 transition">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">🔮 Week Lookahead Pipeline</span>
@@ -84,21 +76,18 @@
             </div>
             <div id="future-drawer" class="hidden mt-3 space-y-3 transition duration-200">
                 <div id="future-tasks-container" class="space-y-3">
-                    <!-- Managed Live by Lookahead Engine Loop -->
-                </div>
+                    </div>
             </div>
         </section>
 
-        <!-- Dynamic Modal Base: Settings Drawer -->
         <div id="settings-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h3 class="font-black text-lg text-teal-400 tracking-tight">System Settings</h3>
+                    <h3 class="font-black text-lg text-teal-400 tracking-tight " >System Settings</h3>
                     <button onclick="toggleDrawer('settings-drawer')" class="text-slate-500 hover:text-slate-200 font-bold p-1">✕</button>
                 </div>
                 
                 <div class="space-y-4">
-                    <!-- iCal Feed Input Field -->
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Public iCal Feed URL</label>
                         <input id="settings-ical-input" type="text" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-lg text-xs focus:outline-none focus:border-teal-500 font-mono" placeholder="https://calendar.google.com/...">
@@ -108,7 +97,6 @@
                         <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Master Weekly Recurrence Templates (Comma Separated)</p>
                     </div>
 
-                    <!-- Mon-Fri Loops -->
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Monday Absolutes</label>
                         <textarea id="rec-monday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Staff Meeting, Prep, Review..."></textarea>
@@ -129,15 +117,13 @@
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Friday Absolutes</label>
                         <textarea id="rec-friday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500"></textarea>
                     </div>
-
-                    <!-- EXPANDED WEEKEND FIELDS FOR MINISTRY ALIGNMENT -->
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-teal-500/80 uppercase tracking-wide flex items-center gap-1">✨ Saturday Absolutes</label>
-                        <textarea id="rec-saturday" class="w-full bg-slate-950 border border-teal-950/40 border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Service Prep, Event Check-in..."></textarea>
+                        <textarea id="rec-saturday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Service Prep, Event Check-in..."></textarea>
                     </div>
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-teal-500/80 uppercase tracking-wide flex items-center gap-1">✨ Sunday Absolutes</label>
-                        <textarea id="rec-sunday" class="w-full bg-slate-950 border border-teal-950/40 border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Morning Service, Evening Fellowship..."></textarea>
+                        <textarea id="rec-sunday" class="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-lg text-sm focus:outline-none focus:border-teal-500" placeholder="Morning Service, Evening Fellowship..."></textarea>
                     </div>
                 </div>
 
@@ -148,7 +134,6 @@
             </div>
         </div>
 
-        <!-- Dynamic Modal Base: Vision Horizon Drawers -->
         <div id="horizon-drawer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 max-h-[75vh] overflow-y-auto shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -162,12 +147,10 @@
                 </div>
 
                 <ul id="horizon-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
-                    <!-- Managed Live by Horizon Script Framework -->
-                </ul>
+                    </ul>
             </div>
         </div>
 
-        <!-- Footer Navigation Horizon Tabs -->
         <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/90 border-t border-slate-900 p-2.5 flex items-center justify-around text-[11px] font-bold uppercase tracking-wider text-slate-400 shadow-xl backdrop-blur-md z-40">
             <button onclick="openHorizonDrawer('monthly')" class="flex flex-col items-center gap-1 hover:text-teal-400 transition py-1 px-3">
                 <span>Monthly</span>
@@ -182,7 +165,6 @@
 
     </div>
 
-    <!-- Core Operations Link Mapping -->
     <script src="app.js"></script>
 </body>
 </html>
