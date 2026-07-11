@@ -64,7 +64,7 @@ function initDay() {
     }
 }
 
-// --- BULLETPROOF iCAL PARSING ENGINE ---
+// --- AMENDED iCAL PARSING ENGINE ---
 async function fetchCalendarFeed(url) {
     const eventContainer = document.getElementById('calendar-events');
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
@@ -73,20 +73,20 @@ async function fetchCalendarFeed(url) {
         // Clear out webcal prefixes if present
         let targetUrl = url.replace('webcal://', 'https://');
         
-        // Use a rock-solid, ultra-fast public CORS proxy to bridge the network request
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        // Explicit ?url= query string configuration matching proxy requirements
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
         
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error("Primary proxy gateway rejected the request.");
         
-        // Read the response as raw text stream data for the iCal interpreter
+        // Read response directly as raw text data stream for the ICAL parser
         const rawText = await response.text();
         parseAndRenderEvents(rawText);
 
     } catch (error) {
         console.error("Calendar Sync Error:", error);
         
-        // Backup Attempt: Try an alternative public bridge engine if corsproxy has an issue
+        // Secondary Fallback Attempt: Fires using alternative JSON structure if gateway drops
         try {
             let targetUrl = url.replace('webcal://', 'https://');
             const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
