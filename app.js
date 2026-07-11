@@ -1,6 +1,6 @@
 const APP_STORAGE_KEY = 'ministry_sanity_data_v2';
 
-// Baseline state structural initialization - EXPANDED FOR FULL WEEKEND RECURRENCE
+// Baseline state structural initialization - INCLUDES SATURDAY & SUNDAY TEMPLATES
 let appState = JSON.parse(localStorage.getItem(APP_STORAGE_KEY)) || {
     settings: { 
         icalUrl: '', 
@@ -10,7 +10,7 @@ let appState = JSON.parse(localStorage.getItem(APP_STORAGE_KEY)) || {
     horizon: { monthly: [], quarterly: [], annual: [] }
 };
 
-// Guard fix for users transitioning from the weekday-only storage schema
+// Structural state guard to prevent data parsing errors from older weekday-only setups
 if (!appState.settings.recurring.saturday) appState.settings.recurring.saturday = [];
 if (!appState.settings.recurring.sunday) appState.settings.recurring.sunday = [];
 
@@ -71,39 +71,47 @@ function initDay() {
     }
 }
 
-// --- iCAL PARSING ENGINE ---
+// --- iCAL PARSING ENGINE WITH SEQUENTIAL MULTI-PROXY FAILOVER ---
 async function fetchCalendarFeed(url) {
     const eventContainer = document.getElementById('calendar-events');
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
 
-    try {
-        let targetUrl = url.replace('webcal://', 'https://');
-        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
-        
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Primary proxy gateway rejected the request.");
-        
-        const rawText = await response.text();
-        parseAndRenderEvents(rawText);
+    let targetUrl = url.replace('webcal://', 'https://');
+    
+    // Array of robust public CORS proxy gateways to bypass security stream headers sequentially
+    const proxyGateways = [
+        `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://cors-anywhere.herokuapp.com/${targetUrl}`
+    ];
 
-    } catch (error) {
-        console.error("Calendar Sync Error:", error);
-        
+    for (let i = 0; i < proxyGateways.length; i++) {
         try {
-            let targetUrl = url.replace('webcal://', 'https://');
-            const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            const backupRes = await fetch(backupProxy);
-            const backupJson = await backupRes.json();
-            if (backupJson.contents) {
-                parseAndRenderEvents(backupJson.contents);
-                return;
-            }
-        } catch (backupError) {
-            console.error("Backup Proxy Also Failed:", backupError);
-        }
+            const currentProxyUrl = proxyGateways[i];
+            const response = await fetch(currentProxyUrl);
+            if (!response.ok) throw new Error(`Gateway index ${i} rejected response.`);
 
-        eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check feed URL config.</p>`;
+            let rawText = "";
+            // allorigins wraps payload streams inside a .contents property object
+            if (currentProxyUrl.includes("allorigins.win")) {
+                const json = await response.json();
+                rawText = json.contents;
+            } else {
+                rawText = await response.text();
+            }
+
+            // Verify if the returning string body actually contains valid calendar blocks
+            if (rawText && rawText.includes("BEGIN:VCALENDAR")) {
+                parseAndRenderEvents(rawText);
+                return; // Calendar data captured! Exit loop early.
+            }
+        } catch (error) {
+            console.warn(`Proxy gateway index ${i} failed. Advancing to next sequence...`, error);
+        }
     }
+
+    // Displays if all network endpoints timeout or error out
+    eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check internet connection or feed settings.</p>`;
 }
 
 // Internal processor to filter out today's agenda timestamps matching device local layout
@@ -214,7 +222,7 @@ function deleteTask(id, type) {
     saveState();
 }
 
-// System Configurations Configuration Functions - INCLUDES SATURDAY AND SUNDAY BINDINGS
+// System Configuration Binder Modules - SUPPORTS ALL 7 CALENDAR DAYS
 function populateSettingsInputs() {
     document.getElementById('settings-ical-input').value = appState.settings.icalUrl || '';
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -249,7 +257,7 @@ function saveConfiguration() {
     toggleDrawer('settings-drawer');
 }
 
-// Future Drawer Implementation (Pull from Future Engine) - FULL 7-DAY ROTATION CYCLE
+// Future Drawer Template Lookahead (Displays upcoming pipeline)
 function renderFutureDrawer() {
     const container = document.getElementById('future-tasks-container');
     if (!container) return;
@@ -307,7 +315,7 @@ function pullTaskToToday(targetDay, index, taskText) {
     saveState();
 }
 
-// Bottom Tabbed Horizon Views
+// Bottom Tabbed Vision Horizon Views
 function openHorizonDrawer(tab) {
     activeHorizonTab = tab;
     document.getElementById('horizon-title').innerText = `${tab} Vision Horizon`;
