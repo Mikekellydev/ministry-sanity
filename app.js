@@ -1,11 +1,18 @@
 const APP_STORAGE_KEY = 'ministry_sanity_data_v2';
 
-// Baseline state structural initialization
+// Baseline state structural initialization - EXPANDED FOR FULL WEEKEND RECURRENCE
 let appState = JSON.parse(localStorage.getItem(APP_STORAGE_KEY)) || {
-    settings: { icalUrl: '', recurring: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] } },
+    settings: { 
+        icalUrl: '', 
+        recurring: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [] } 
+    },
     days: {},
     horizon: { monthly: [], quarterly: [], annual: [] }
 };
+
+// Guard fix for users transitioning from the weekday-only storage schema
+if (!appState.settings.recurring.saturday) appState.settings.recurring.saturday = [];
+if (!appState.settings.recurring.sunday) appState.settings.recurring.sunday = [];
 
 let activeHorizonTab = 'monthly';
 
@@ -64,29 +71,24 @@ function initDay() {
     }
 }
 
-// --- AMENDED iCAL PARSING ENGINE ---
+// --- iCAL PARSING ENGINE ---
 async function fetchCalendarFeed(url) {
     const eventContainer = document.getElementById('calendar-events');
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
 
     try {
-        // Clear out webcal prefixes if present
         let targetUrl = url.replace('webcal://', 'https://');
-        
-        // Explicit ?url= query string configuration matching proxy requirements
         const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
         
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error("Primary proxy gateway rejected the request.");
         
-        // Read response directly as raw text data stream for the ICAL parser
         const rawText = await response.text();
         parseAndRenderEvents(rawText);
 
     } catch (error) {
         console.error("Calendar Sync Error:", error);
         
-        // Secondary Fallback Attempt: Fires using alternative JSON structure if gateway drops
         try {
             let targetUrl = url.replace('webcal://', 'https://');
             const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
@@ -111,7 +113,6 @@ function parseAndRenderEvents(rawDataStr) {
     const comp = new ICAL.Component(jcalData);
     const vevents = comp.getAllSubcomponents('vevent');
     
-    // Get local today parameters
     const today = new Date();
     const targetYear = today.getFullYear();
     const targetMonth = today.getMonth();
@@ -123,7 +124,6 @@ function parseAndRenderEvents(rawDataStr) {
         const event = new ICAL.Event(vevent);
         const dtstart = event.startDate.toJSDate();
         
-        // Match exact year, month, and day based on local device presentation
         if (
             dtstart.getFullYear() === targetYear &&
             dtstart.getMonth() === targetMonth &&
@@ -137,7 +137,6 @@ function parseAndRenderEvents(rawDataStr) {
         }
     });
 
-    // Chronological Sort
     todayEvents.sort((a, b) => a.rawTime - b.rawTime);
 
     if (todayEvents.length === 0) {
@@ -215,27 +214,31 @@ function deleteTask(id, type) {
     saveState();
 }
 
-// System Configurations Configuration Functions
+// System Configurations Configuration Functions - INCLUDES SATURDAY AND SUNDAY BINDINGS
 function populateSettingsInputs() {
     document.getElementById('settings-ical-input').value = appState.settings.icalUrl || '';
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     days.forEach(day => {
-        document.getElementById(`rec-${day}`).value = (appState.settings.recurring[day] || []).join(', ');
+        const inputEl = document.getElementById(`rec-${day}`);
+        if (inputEl) {
+            inputEl.value = (appState.settings.recurring[day] || []).join(', ');
+        }
     });
 }
 
 function saveConfiguration() {
     appState.settings.icalUrl = document.getElementById('settings-ical-input').value.trim();
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     
     days.forEach(day => {
-        const value = document.getElementById(`rec-${day}`).value;
-        appState.settings.recurring[day] = value.split(',')
-            .map(item => item.trim())
-            .filter(item => item.length > 0);
+        const inputEl = document.getElementById(`rec-${day}`);
+        if (inputEl) {
+            appState.settings.recurring[day] = inputEl.value.split(',')
+                .map(item => item.trim())
+                .filter(item => item.length > 0);
+        }
     });
 
-    // Wipe today's uncompleted array shell to force a template re-mapping refresh
     const todayKey = getTodayKey();
     if (appState.days[todayKey] && appState.days[todayKey].bandwidth.length === 0 && appState.days[todayKey].absolutes.filter(t => t.done).length === 0) {
         delete appState.days[todayKey];
@@ -246,20 +249,21 @@ function saveConfiguration() {
     toggleDrawer('settings-drawer');
 }
 
-// Future Drawer Implementation (Pull from Future Engine)
+// Future Drawer Implementation (Pull from Future Engine) - FULL 7-DAY ROTATION CYCLE
 function renderFutureDrawer() {
     const container = document.getElementById('future-tasks-container');
+    if (!container) return;
     container.innerHTML = '';
     
-    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const currentDayName = getDayOfWeekName();
     const currentIdx = weekdays.indexOf(currentDayName);
 
-    // Filter to display only upcoming days left in the template cycle
+    // Filters down to show remaining days left in the week's execution timeline
     const remainingDays = currentIdx === -1 ? weekdays : weekdays.slice(currentIdx + 1);
 
     if (remainingDays.length === 0) {
-        container.innerHTML = `<p class="text-slate-600 text-xs italic text-center py-4">End of active weekday template pipeline.</p>`;
+        container.innerHTML = `<p class="text-slate-600 text-xs italic text-center py-4">End of active weekly template pipeline.</p>`;
         return;
     }
 
@@ -276,7 +280,7 @@ function renderFutureDrawer() {
 
         tasks.forEach((taskText, index) => {
             const li = document.createElement('li');
-            li.className = 'flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800/60 hover:border-teal-500/50 transition cursor-pointer group'
+            li.className = 'flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800/60 hover:border-teal-500/50 transition cursor-pointer group';
             li.onclick = () => pullTaskToToday(day, index, taskText);
             li.innerHTML = `
                 <span class="text-slate-300 group-hover:text-teal-400 transition">👉 ${taskText}</span>
@@ -291,10 +295,8 @@ function renderFutureDrawer() {
 }
 
 function pullTaskToToday(targetDay, index, taskText) {
-    // 1. Remove item from the template structure array
     appState.settings.recurring[targetDay].splice(index, 1);
     
-    // 2. Inject task array directly into today's local bandwidth row
     const todayKey = getTodayKey();
     appState.days[todayKey].bandwidth.push({
         id: Date.now(),
