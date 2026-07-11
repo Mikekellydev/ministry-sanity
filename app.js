@@ -114,51 +114,83 @@ async function fetchCalendarFeed(url) {
     eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check internet connection or feed settings.</p>`;
 }
 
-// --- TIMEZONE-NORMALIZED EVENT MATCHING LOGIC ---
+// --- RECURRENCE-AWARE EVENT PARSING ENGINE ---
 function parseAndRenderEvents(rawDataStr) {
     const eventContainer = document.getElementById('calendar-events');
-    const jcalData = ICAL.parse(rawDataStr);
-    const comp = new ICAL.Component(jcalData);
-    const vevents = comp.getAllSubcomponents('vevent');
     
-    // Create a normalized local "today" string profile (YYYY-MM-DD)
-    const localToday = new Date();
-    const localTargetStr = localToday.toLocaleDateString('en-CA'); 
-
-    let todayEvents = [];
-
-    vevents.forEach(vevent => {
-        const event = new ICAL.Event(vevent);
+    try {
+        const jcalData = ICAL.parse(rawDataStr);
+        const comp = new ICAL.Component(jcalData);
+        const vevents = comp.getAllSubcomponents('vevent');
         
-        // Convert the iCal time object into your local device context explicitly
-        const dtstart = event.startDate.toJSDate();
-        const eventLocalStr = dtstart.toLocaleDateString('en-CA'); 
+        // Define the absolute boundary for "today" in local time
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        let todayEvents = [];
 
-        // Strict comparison against matching string baselines instead of raw UTC elements
-        if (eventLocalStr === localTargetStr) {
+        vevents.forEach(vevent => {
+            const event = new ICAL.Event(vevent);
+            
+            // If the event is recurring, expand it to see if an occurrence lands today
+            if (event.isRecurring()) {
+                const iterator = event.iterator(ICAL.Time.fromJSDate(startOfDay, true));
+                let nextTime;
+                
+                // Scan occurrences within a reasonable window
+                while ((nextTime = iterator.next()) && nextTime.toJSDate() <= endOfDay) {
+                    const occurrenceDate = nextTime.toJSDate();
+                    if (occurrenceDate >= startOfDay && occurrenceDate <= endOfDay) {
+                        addEventToPool(event, occurrenceDate);
+                    }
+                }
+            } else {
+                // For standard single events, check if it lands on today's date string
+                const dtstart = event.startDate.toJSDate();
+                if (dtstart >= startOfDay && dtstart <= endOfDay) {
+                    addEventToPool(event, dtstart);
+                }
+            }
+        });
+
+        // Helper helper to format and clean data profiles
+        function addEventToPool(event, dateObj) {
             let timeStr = "All Day";
             if (!event.startDate.isDate) { 
-                timeStr = dtstart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
-            todayEvents.push({ time: timeStr, summary: event.summary, rawTime: dtstart.getTime() });
+            // Avoid adding duplicates of the same event timeline
+            if (!todayEvents.some(e => e.summary === event.summary && e.time === timeStr)) {
+                todayEvents.push({
+                    time: timeStr,
+                    summary: event.summary || "(No Title)",
+                    rawTime: dateObj.getTime()
+                });
+            }
         }
-    });
 
-    // Chronological Sort
-    todayEvents.sort((a, b) => a.rawTime - b.rawTime);
+        // Chronological sorting sequence
+        todayEvents.sort((a, b) => a.rawTime - b.rawTime);
 
-    if (todayEvents.length === 0) {
-        eventContainer.innerHTML = `<p class="italic text-slate-500">No scheduled meetings today. Clear runway.</p>`;
-    } else {
-        eventContainer.innerHTML = todayEvents.map(e => `
-            <div class="flex items-start gap-2 py-0.5">
-                <span class="text-teal-400 font-mono font-medium shrink-0 w-16">${e.time}</span>
-                <span class="text-slate-200 truncate">${e.summary}</span>
-            </div>
-        `).join('');
+        if (todayEvents.length === 0) {
+            eventContainer.innerHTML = `<p class="italic text-slate-500">No scheduled meetings today. Clear runway.</p>`;
+        } else {
+            eventContainer.innerHTML = todayEvents.map(e => `
+                <div class="flex items-start gap-2 py-0.5">
+                    <span class="text-teal-400 font-mono font-medium shrink-0 w-16">${e.time}</span>
+                    <span class="text-slate-200 truncate">${e.summary}</span>
+                </div>
+            `).join('');
+        }
+
+    } catch (parseError) {
+        console.error("iCal parsing error: ", parseError);
+        eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Error parsing schedule data stream.</p>`;
     }
 }
-
 // UI Active Render Layer
 function renderActiveGrid() {
     const todayKey = getTodayKey();
