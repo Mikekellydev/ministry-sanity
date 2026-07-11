@@ -64,32 +64,42 @@ function initDay() {
     }
 }
 
-// --- iCAL PARSING ENGINE ---
+// --- BULLETPROOF iCAL PARSING ENGINE ---
 async function fetchCalendarFeed(url) {
     const eventContainer = document.getElementById('calendar-events');
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
 
     try {
+        // Clear out webcal prefixes if present
         let targetUrl = url.replace('webcal://', 'https://');
         
-        // Use a highly stable Google Script redirect utility to safely grab workspace organizational feeds
-        const proxyUrl = `https://script.google.com/macros/s/AKfycbzG7Q3mU1_p_fNfKmxq7627vJjW0gE-z-2r91f7w/exec?url=${encodeURIComponent(targetUrl)}`;
+        // Use a rock-solid, ultra-fast public CORS proxy to bridge the network request
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         const response = await fetch(proxyUrl);
-        if (!response.ok) {
-            // Fallback strategy if the dedicated redirect is busy
-            const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            const backupRes = await fetch(backupProxy);
-            const backupJson = await backupRes.json();
-            parseAndRenderEvents(backupJson.contents);
-            return;
-        }
+        if (!response.ok) throw new Error("Primary proxy gateway rejected the request.");
         
+        // Read the response as raw text stream data for the iCal interpreter
         const rawText = await response.text();
         parseAndRenderEvents(rawText);
 
     } catch (error) {
         console.error("Calendar Sync Error:", error);
+        
+        // Backup Attempt: Try an alternative public bridge engine if corsproxy has an issue
+        try {
+            let targetUrl = url.replace('webcal://', 'https://');
+            const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            const backupRes = await fetch(backupProxy);
+            const backupJson = await backupRes.json();
+            if (backupJson.contents) {
+                parseAndRenderEvents(backupJson.contents);
+                return;
+            }
+        } catch (backupError) {
+            console.error("Backup Proxy Also Failed:", backupError);
+        }
+
         eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check feed URL config.</p>`;
     }
 }
