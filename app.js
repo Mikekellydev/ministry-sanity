@@ -114,29 +114,28 @@ async function fetchCalendarFeed(url) {
     eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check internet connection or feed settings.</p>`;
 }
 
-// Internal processor to filter out today's agenda timestamps matching device local layout
+// --- TIMEZONE-NORMALIZED EVENT MATCHING LOGIC ---
 function parseAndRenderEvents(rawDataStr) {
     const eventContainer = document.getElementById('calendar-events');
     const jcalData = ICAL.parse(rawDataStr);
     const comp = new ICAL.Component(jcalData);
     const vevents = comp.getAllSubcomponents('vevent');
     
-    const today = new Date();
-    const targetYear = today.getFullYear();
-    const targetMonth = today.getMonth();
-    const targetDate = today.getDate();
-    
+    // Create a normalized local "today" string profile (YYYY-MM-DD)
+    const localToday = new Date();
+    const localTargetStr = localToday.toLocaleDateString('en-CA'); 
+
     let todayEvents = [];
 
     vevents.forEach(vevent => {
         const event = new ICAL.Event(vevent);
-        const dtstart = event.startDate.toJSDate();
         
-        if (
-            dtstart.getFullYear() === targetYear &&
-            dtstart.getMonth() === targetMonth &&
-            dtstart.getDate() === targetDate
-        ) {
+        // Convert the iCal time object into your local device context explicitly
+        const dtstart = event.startDate.toJSDate();
+        const eventLocalStr = dtstart.toLocaleDateString('en-CA'); 
+
+        // Strict comparison against matching string baselines instead of raw UTC elements
+        if (eventLocalStr === localTargetStr) {
             let timeStr = "All Day";
             if (!event.startDate.isDate) { 
                 timeStr = dtstart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -145,6 +144,7 @@ function parseAndRenderEvents(rawDataStr) {
         }
     });
 
+    // Chronological Sort
     todayEvents.sort((a, b) => a.rawTime - b.rawTime);
 
     if (todayEvents.length === 0) {
