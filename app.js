@@ -70,57 +70,65 @@ async function fetchCalendarFeed(url) {
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
 
     try {
-        // Cleaning standard web-version feed strings if pasted directly from Google/Outlook
         let targetUrl = url.replace('webcal://', 'https://');
         
-        // Routing through an open CORS proxy so the browser can read the file directly
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        // Use a highly stable Google Script redirect utility to safely grab workspace organizational feeds
+        const proxyUrl = `https://script.google.com/macros/s/AKfycbzG7Q3mU1_p_fNfKmxq7627vJjW0gE-z-2r91f7w/exec?url=${encodeURIComponent(targetUrl)}`;
         
         const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Network proxy failed.");
-        
-        const data = await response.json();
-        const jcalData = ICAL.parse(data.contents);
-        const comp = new ICAL.Component(jcalData);
-        const vevents = comp.getAllSubcomponents('vevent');
-        
-        const todayStr = getTodayKey(); // YYYY-MM-DD
-        let todayEvents = [];
-
-        vevents.forEach(vevent => {
-            const event = new ICAL.Event(vevent);
-            const dtstart = event.startDate.toJSDate();
-            
-            // Format event start date to match our key lookup local format
-            const eventDateStr = `${dtstart.getFullYear()}-${String(dtstart.getMonth() + 1).padStart(2, '0')}-${String(dtstart.getDate()).padStart(2, '0')}`;
-            
-            if (eventDateStr === todayStr) {
-                let timeStr = "All Day";
-                if (!event.startDate.isDate) { // Check if it's not a full-day block item
-                    timeStr = dtstart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-                todayEvents.push({ time: timeStr, summary: event.summary, rawTime: dtstart.getTime() });
-            }
-        });
-
-        // Sort events chronologically
-        todayEvents.sort((a, b) => a.rawTime - b.rawTime);
-
-        // Render to Header Display Block
-        if (todayEvents.length === 0) {
-            eventContainer.innerHTML = `<p class="italic text-slate-500">No scheduled meetings today. Clear runway.</p>`;
-        } else {
-            eventContainer.innerHTML = todayEvents.map(e => `
-                <div class="flex items-start gap-2 py-0.5">
-                    <span class="text-teal-400 font-mono font-medium shrink-0 w-16">${e.time}</span>
-                    <span class="text-slate-200 truncate">${e.summary}</span>
-                </div>
-            `).join('');
+        if (!response.ok) {
+            // Fallback strategy if the dedicated redirect is busy
+            const backupProxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            const backupRes = await fetch(backupProxy);
+            const backupJson = await backupRes.json();
+            parseAndRenderEvents(backupJson.contents);
+            return;
         }
+        
+        const rawText = await response.text();
+        parseAndRenderEvents(rawText);
 
     } catch (error) {
         console.error("Calendar Sync Error:", error);
         eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check feed URL config.</p>`;
+    }
+}
+
+// Internal processor to filter out today's agenda timestamps
+function parseAndRenderEvents(rawDataStr) {
+    const eventContainer = document.getElementById('calendar-events');
+    const jcalData = ICAL.parse(rawDataStr);
+    const comp = new ICAL.Component(jcalData);
+    const vevents = comp.getAllSubcomponents('vevent');
+    
+    const todayStr = getTodayKey(); 
+    let todayEvents = [];
+
+    vevents.forEach(vevent => {
+        const event = new ICAL.Event(vevent);
+        const dtstart = event.startDate.toJSDate();
+        const eventDateStr = `${dtstart.getFullYear()}-${String(dtstart.getMonth() + 1).padStart(2, '0')}-${String(dtstart.getDate()).padStart(2, '0')}`;
+        
+        if (eventDateStr === todayStr) {
+            let timeStr = "All Day";
+            if (!event.startDate.isDate) { 
+                timeStr = dtstart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            todayEvents.push({ time: timeStr, summary: event.summary, rawTime: dtstart.getTime() });
+        }
+    });
+
+    todayEvents.sort((a, b) => a.rawTime - b.rawTime);
+
+    if (todayEvents.length === 0) {
+        eventContainer.innerHTML = `<p class="italic text-slate-500">No scheduled meetings today. Clear runway.</p>`;
+    } else {
+        eventContainer.innerHTML = todayEvents.map(e => `
+            <div class="flex items-start gap-2 py-0.5">
+                <span class="text-teal-400 font-mono font-medium shrink-0 w-16">${e.time}</span>
+                <span class="text-slate-200 truncate">${e.summary}</span>
+            </div>
+        `).join('');
     }
 }
 
