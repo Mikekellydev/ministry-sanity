@@ -1,6 +1,6 @@
 const APP_STORAGE_KEY = 'ministry_sanity_data_v2';
 
-// Baseline state structural initialization - INCLUDES SATURDAY & SUNDAY TEMPLATES
+// State structural initialization with multi-day pipelines
 let appState = JSON.parse(localStorage.getItem(APP_STORAGE_KEY)) || {
     settings: { 
         icalUrl: '', 
@@ -10,10 +10,12 @@ let appState = JSON.parse(localStorage.getItem(APP_STORAGE_KEY)) || {
     horizon: { monthly: [], quarterly: [], annual: [] }
 };
 
-// Structural state guard to prevent data parsing errors from older weekday-only setups
+// Structural state guard assertions
 if (!appState.settings.recurring.saturday) appState.settings.recurring.saturday = [];
 if (!appState.settings.recurring.sunday) appState.settings.recurring.sunday = [];
 
+// --- DYNAMIC FOCUS STATE MANAGEMENT ---
+let currentFocusDate = new Date(); // Track the currently viewed date actively
 let activeHorizonTab = 'monthly';
 
 function saveState() {
@@ -22,7 +24,6 @@ function saveState() {
     renderFutureDrawer();
 }
 
-// Global UI State Toggle Utility
 function toggleDrawer(id) {
     const el = document.getElementById(id);
     if (el) {
@@ -33,29 +34,35 @@ function toggleDrawer(id) {
     }
 }
 
-// Generate matching key syntax (YYYY-MM-DD)
-function getTodayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// Convert a Date object instance explicitly into structural YYYY-MM-DD baseline
+function getDateKey(dateObj) {
+    return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 }
 
-function getDayOfWeekName() {
-    return new Date().toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
+function getDayOfWeekName(dateObj) {
+    return dateObj.toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
 }
 
-// Initial Run: Check day structure and pull calendar feed
+// --- INTERACTIVE DATE NAVIGATION SEQUENCES ---
+function navigateDays(offset) {
+    currentFocusDate.setDate(currentFocusDate.getDate() + offset);
+    initDay();
+}
+
+// System Core Entry Handler
 function initDay() {
-    const todayKey = getTodayKey();
-    const dayName = getDayOfWeekName();
+    const dayKey = getDateKey(currentFocusDate);
+    const dayName = getDayOfWeekName(currentFocusDate);
     
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { 
+    // Format Display Title with dynamic context
+    document.getElementById('current-date').innerText = currentFocusDate.toLocaleDateString('en-US', { 
         weekday: 'long', month: 'short', day: 'numeric' 
     });
 
-    // If day hasn't been instantiated yet, inject template
-    if (!appState.days[todayKey]) {
+    // If target day has not been initialized yet, populate its baseline from repeating templates
+    if (!appState.days[dayKey]) {
         const templateTasks = appState.settings.recurring[dayName] || [];
-        appState.days[todayKey] = {
+        appState.days[dayKey] = {
             absolutes: templateTasks.map((text, idx) => ({ id: Date.now() + idx, text: text, done: false })),
             bandwidth: []
         };
@@ -65,20 +72,17 @@ function initDay() {
     renderActiveGrid();
     renderFutureDrawer();
     
-    // Trigger Live Calendar Fetch if a URL exists
     if (appState.settings.icalUrl) {
         fetchCalendarFeed(appState.settings.icalUrl);
     }
 }
 
-// --- iCAL PARSING ENGINE WITH SEQUENTIAL MULTI-PROXY FAILOVER ---
+// --- iCAL MULTI-PROXY STREAM PARSER ---
 async function fetchCalendarFeed(url) {
     const eventContainer = document.getElementById('calendar-events');
     eventContainer.innerHTML = `<p class="italic text-teal-500 animate-pulse">Syncing agenda...</p>`;
 
     let targetUrl = url.replace('webcal://', 'https://');
-    
-    // Array of robust public CORS proxy gateways to bypass security stream headers sequentially
     const proxyGateways = [
         `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
         `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
@@ -89,10 +93,9 @@ async function fetchCalendarFeed(url) {
         try {
             const currentProxyUrl = proxyGateways[i];
             const response = await fetch(currentProxyUrl);
-            if (!response.ok) throw new Error(`Gateway index ${i} rejected response.`);
+            if (!response.ok) throw new Error(`Gateway index ${i} failed request.`);
 
             let rawText = "";
-            // allorigins wraps payload streams inside a .contents property object
             if (currentProxyUrl.includes("allorigins.win")) {
                 const json = await response.json();
                 rawText = json.contents;
@@ -100,21 +103,18 @@ async function fetchCalendarFeed(url) {
                 rawText = await response.text();
             }
 
-            // Verify if the returning string body actually contains valid calendar blocks
             if (rawText && rawText.includes("BEGIN:VCALENDAR")) {
                 parseAndRenderEvents(rawText);
-                return; // Calendar data captured! Exit loop early.
+                return;
             }
         } catch (error) {
-            console.warn(`Proxy gateway index ${i} failed. Advancing to next sequence...`, error);
+            console.warn(`Proxy gateway variant index ${i} bypassed.`, error);
         }
     }
-
-    // Displays if all network endpoints timeout or error out
-    eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar sync failed. Check internet connection or feed settings.</p>`;
+    eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Calendar stream sync failed.</p>`;
 }
 
-// --- RECURRENCE-AWARE EVENT PARSING ENGINE ---
+// --- FOCUS-DATE AWARE RECURRENCE EXPANDER ---
 function parseAndRenderEvents(rawDataStr) {
     const eventContainer = document.getElementById('calendar-events');
     
@@ -123,24 +123,22 @@ function parseAndRenderEvents(rawDataStr) {
         const comp = new ICAL.Component(jcalData);
         const vevents = comp.getAllSubcomponents('vevent');
         
-        // Define the absolute boundary for "today" in local time
-        const startOfDay = new Date();
+        // Boundaries are structured dynamically against our current target view focus window
+        const startOfDay = new Date(currentFocusDate);
         startOfDay.setHours(0, 0, 0, 0);
         
-        const endOfDay = new Date();
+        const endOfDay = new Date(currentFocusDate);
         endOfDay.setHours(23, 59, 59, 999);
         
-        let todayEvents = [];
+        let focusDayEvents = [];
 
         vevents.forEach(vevent => {
             const event = new ICAL.Event(vevent);
             
-            // If the event is recurring, expand it to see if an occurrence lands today
             if (event.isRecurring()) {
                 const iterator = event.iterator(ICAL.Time.fromJSDate(startOfDay, true));
                 let nextTime;
                 
-                // Scan occurrences within a reasonable window
                 while ((nextTime = iterator.next()) && nextTime.toJSDate() <= endOfDay) {
                     const occurrenceDate = nextTime.toJSDate();
                     if (occurrenceDate >= startOfDay && occurrenceDate <= endOfDay) {
@@ -148,7 +146,6 @@ function parseAndRenderEvents(rawDataStr) {
                     }
                 }
             } else {
-                // For standard single events, check if it lands on today's date string
                 const dtstart = event.startDate.toJSDate();
                 if (dtstart >= startOfDay && dtstart <= endOfDay) {
                     addEventToPool(event, dtstart);
@@ -156,15 +153,13 @@ function parseAndRenderEvents(rawDataStr) {
             }
         });
 
-        // Helper helper to format and clean data profiles
         function addEventToPool(event, dateObj) {
             let timeStr = "All Day";
             if (!event.startDate.isDate) { 
                 timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
-            // Avoid adding duplicates of the same event timeline
-            if (!todayEvents.some(e => e.summary === event.summary && e.time === timeStr)) {
-                todayEvents.push({
+            if (!focusDayEvents.some(e => e.summary === event.summary && e.time === timeStr)) {
+                focusDayEvents.push({
                     time: timeStr,
                     summary: event.summary || "(No Title)",
                     rawTime: dateObj.getTime()
@@ -172,29 +167,29 @@ function parseAndRenderEvents(rawDataStr) {
             }
         }
 
-        // Chronological sorting sequence
-        todayEvents.sort((a, b) => a.rawTime - b.rawTime);
+        focusDayEvents.sort((a, b) => a.rawTime - b.rawTime);
 
-        if (todayEvents.length === 0) {
-            eventContainer.innerHTML = `<p class="italic text-slate-500">No scheduled meetings today. Clear runway.</p>`;
+        if (focusDayEvents.length === 0) {
+            eventContainer.innerHTML = `<p class="italic text-slate-500 text-xs">No scheduled events found for this day view.</p>`;
         } else {
-            eventContainer.innerHTML = todayEvents.map(e => `
+            eventContainer.innerHTML = focusDayEvents.map(e => `
                 <div class="flex items-start gap-2 py-0.5">
-                    <span class="text-teal-400 font-mono font-medium shrink-0 w-16">${e.time}</span>
-                    <span class="text-slate-200 truncate">${e.summary}</span>
+                    <span class="text-teal-400 font-mono font-medium shrink-0 w-16 text-xs">${e.time}</span>
+                    <span class="text-slate-200 truncate text-xs">${e.summary}</span>
                 </div>
             `).join('');
         }
 
     } catch (parseError) {
-        console.error("iCal parsing error: ", parseError);
-        eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Error parsing schedule data stream.</p>`;
+        console.error(parseError);
+        eventContainer.innerHTML = `<p class="italic text-rose-500">⚠️ Error parsing schedule streams.</p>`;
     }
 }
-// UI Active Render Layer
+
+// UI Grid Render Layer
 function renderActiveGrid() {
-    const todayKey = getTodayKey();
-    const currentDay = appState.days[todayKey] || { absolutes: [], bandwidth: [] };
+    const dayKey = getDateKey(currentFocusDate);
+    const currentDay = appState.days[dayKey] || { absolutes: [], bandwidth: [] };
     
     const absList = document.getElementById('absolutes-list');
     const bandList = document.getElementById('bandwidth-list');
@@ -203,13 +198,13 @@ function renderActiveGrid() {
     bandList.innerHTML = '';
 
     if (currentDay.absolutes.length === 0) {
-        absList.innerHTML = `<li class="text-slate-600 text-xs italic p-2 text-center">No structural requirements set.</li>`;
+        absList.innerHTML = `<li class="text-slate-600 text-xs italic p-2 text-center">No assignments configured for this date block.</li>`;
     } else {
         currentDay.absolutes.forEach(task => absList.appendChild(createTaskRow(task, 'absolutes')));
     }
 
     if (currentDay.bandwidth.length === 0) {
-        bandList.innerHTML = `<li class="text-slate-600 text-xs italic p-4 text-center">Bandwidth is empty. Logging live interruptions as they appear.</li>`;
+        bandList.innerHTML = `<li class="text-slate-600 text-xs italic p-4 text-center">Live disruptions log is empty.</li>`;
     } else {
         currentDay.bandwidth.forEach(task => bandList.appendChild(createTaskRow(task, 'bandwidth')));
     }
@@ -231,30 +226,30 @@ function createTaskRow(task, type) {
     return li;
 }
 
-// Interactive Data Management Operations
+// --- UPDATED FOR DYNAMIC FOCUS TARGET ACTIONS ---
 function promptAddTask(type) {
-    const text = prompt(`Enter new ${type} assignment:`);
+    const text = prompt(`Enter new ${type} assignment for this day view:`);
     if (!text || text.trim() === '') return;
     
-    const todayKey = getTodayKey();
-    appState.days[todayKey][type].push({ id: Date.now(), text: text.trim(), done: false });
+    const dayKey = getDateKey(currentFocusDate);
+    appState.days[dayKey][type].push({ id: Date.now(), text: text.trim(), done: false });
     saveState();
 }
 
 function toggleTaskDone(id, type) {
-    const todayKey = getTodayKey();
-    const task = appState.days[todayKey][type].find(t => t.id === id);
+    const dayKey = getDateKey(currentFocusDate);
+    const task = appState.days[dayKey][type].find(t => t.id === id);
     if (task) task.done = !task.done;
     saveState();
 }
 
 function deleteTask(id, type) {
-    const todayKey = getTodayKey();
-    appState.days[todayKey][type] = appState.days[todayKey][type].filter(t => t.id !== id);
+    const dayKey = getDateKey(currentFocusDate);
+    appState.days[dayKey][type] = appState.days[dayKey][type].filter(t => t.id !== id);
     saveState();
 }
 
-// System Configuration Binder Modules - SUPPORTS ALL 7 CALENDAR DAYS
+// System Configurations Configuration Handlers
 function populateSettingsInputs() {
     document.getElementById('settings-ical-input').value = appState.settings.icalUrl || '';
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -279,9 +274,9 @@ function saveConfiguration() {
         }
     });
 
-    const todayKey = getTodayKey();
-    if (appState.days[todayKey] && appState.days[todayKey].bandwidth.length === 0 && appState.days[todayKey].absolutes.filter(t => t.done).length === 0) {
-        delete appState.days[todayKey];
+    const dayKey = getDateKey(currentFocusDate);
+    if (appState.days[dayKey] && appState.days[dayKey].bandwidth.length === 0 && appState.days[dayKey].absolutes.filter(t => t.done).length === 0) {
+        delete appState.days[dayKey];
     }
     
     localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(appState));
@@ -289,21 +284,20 @@ function saveConfiguration() {
     toggleDrawer('settings-drawer');
 }
 
-// Future Drawer Template Lookahead (Displays upcoming pipeline)
+// Weekly Lookahead Lookups
 function renderFutureDrawer() {
     const container = document.getElementById('future-tasks-container');
     if (!container) return;
     container.innerHTML = '';
     
     const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const currentDayName = getDayOfWeekName();
+    const currentDayName = getDayOfWeekName(currentFocusDate);
     const currentIdx = weekdays.indexOf(currentDayName);
 
-    // Filters down to show remaining days left in the week's execution timeline
     const remainingDays = currentIdx === -1 ? weekdays : weekdays.slice(currentIdx + 1);
 
     if (remainingDays.length === 0) {
-        container.innerHTML = `<p class="text-slate-600 text-xs italic text-center py-4">End of active weekly template pipeline.</p>`;
+        container.innerHTML = `<p class="text-slate-600 text-xs italic text-center py-4">End of weekly template pipeline pipeline.</p>`;
         return;
     }
 
@@ -337,8 +331,8 @@ function renderFutureDrawer() {
 function pullTaskToToday(targetDay, index, taskText) {
     appState.settings.recurring[targetDay].splice(index, 1);
     
-    const todayKey = getTodayKey();
-    appState.days[todayKey].bandwidth.push({
+    const dayKey = getDateKey(currentFocusDate);
+    appState.days[dayKey].bandwidth.push({
         id: Date.now(),
         text: `[Pulled from ${targetDay.toUpperCase()}] ${taskText}`,
         done: false
@@ -347,7 +341,7 @@ function pullTaskToToday(targetDay, index, taskText) {
     saveState();
 }
 
-// Bottom Tabbed Vision Horizon Views
+// Vision Horizons Drawer Controls
 function openHorizonDrawer(tab) {
     activeHorizonTab = tab;
     document.getElementById('horizon-title').innerText = `${tab} Vision Horizon`;
@@ -361,7 +355,7 @@ function renderHorizonItems() {
     
     const items = appState.horizon[activeHorizonTab] || [];
     if (items.length === 0) {
-        list.innerHTML = `<li class="text-slate-600 text-xs italic p-4 text-center">No visionary items set for this period.</li>`;
+        list.innerHTML = `<li class="text-slate-600 text-xs italic p-4 text-center">No items set for this window.</li>`;
         return;
     }
 
@@ -393,7 +387,7 @@ function deleteHorizonItem(index) {
     renderHorizonItems();
 }
 
-// Runtime Execution Entry Point
+// Boot Entry Point
 window.onload = () => {
     initDay();
 };
